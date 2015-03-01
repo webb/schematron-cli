@@ -135,7 +135,10 @@ tmp/all/%: src/% m4-header.m4
 		m4-header.m4 $< > $@
 	if [[ -x $< ]]; then chmod uog+x $@; fi
 
-install: $(INSTALL_FILES)
+.PHONY: install
+install:
+	$(MKDIR_P) $(prefix)
+	(cd tmp/all && $(tar) cf - .) | (cd $(prefix) && $(tar) xf -)
 
 uninstall:
 	$(RM) $(INSTALL_FILES)
