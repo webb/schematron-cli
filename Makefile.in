@@ -1,0 +1,162 @@
+
+# Copyright 2014-2015 Georgia Tech Research Corporation (GTRC). All rights reserved.
+
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
+
+SHELL = @bash@ -o pipefail
+
+PACKAGE_NAME = @PACKAGE_NAME@
+PACKAGE_VERSION = @PACKAGE_VERSION@
+dist_name = $(PACKAGE_NAME)-$(PACKAGE_VERSION)
+prefix = @prefix@
+
+# prerequisite packages
+wrtools_core_package_name=wrtools-core
+saxon_cli_package_name=saxon-cli
+xalan_cli_package_name=xalan-cli
+
+INSTALL = @INSTALL@
+MKDIR_P = @MKDIR_P@
+
+curl = @curl@
+find = @find@
+m4 = @m4@
+shasum = @shasum@
+tar = @tar@
+unzip = @unzip@
+zip = @zip@
+
+src_files = $(shell $(find) src -type f ! -name '*~')
+
+all_files_from_src = $(src_files:src/%=tmp/all/%)
+
+SCHEMATRON_ZIP = tmp/iso-schematron-xslt2.zip
+
+TOKENS_DIR = tmp/tokens
+TOKEN_CHECKSUMS_OK = $(TOKENS_DIR)/checksums-ok
+TOKEN_EXTRACTED_SCHEMATRON = $(TOKENS_DIR)/extracted-schematron
+TOKEN_PATCHED_SCHEMATRON = $(TOKENS_DIR)/patched-schematron
+TOKEN_SCHEMATRON_TO_ALL = $(TOKENS_DIR)/schematron-to-all
+
+SCHEMATRON_ORIG_DIR = tmp/iso-schematron-orig
+SCHEMATRON_PATCHED_DIR = tmp/iso-schematron-patched
+SCHEMATRON_PATCH_FILE = iso-schematron-xslt2.patch
+
+CHECKSUM_FILE=shasums.txt
+
+# invoke with $(call touch,$@)
+touch = mkdir -p $(dir $(1)) && touch $(1)
+
+.PHONY: all install uninstall clean distclean fetch reset-shasums extract reset-patch
+
+all: $(all_files_from_src) $(TOKEN_SCHEMATRON_TO_ALL)
+
+$(TOKEN_SCHEMATRON_TO_ALL): $(TOKEN_PATCHED_SCHEMATRON)
+	$(MKDIR_P) tmp/all/share/$(PACKAGE_NAME)/iso-schematron-xslt2
+	(cd $(SCHEMATRON_PATCHED_DIR) && tar cf - .) \
+		| (cd tmp/all/share/$(PACKAGE_NAME)/iso-schematron-xslt2 && tar xf -)
+
+#############################################################################
+# schematron XSLT pile
+
+fetch: $(SCHEMATRON_ZIP)
+
+$(SCHEMATRON_ZIP):
+	$(MKDIR_P) $(dir $@)
+	$(curl) -o $@ https://schematron.googlecode.com/files/iso-schematron-xslt2.zip
+
+extract: $(TOKEN_EXTRACTED_SCHEMATRON)
+
+$(TOKEN_EXTRACTED_SCHEMATRON): $(SCHEMATRON_ZIP) $(TOKEN_CHECKSUMS_OK) 
+	$(RM) $@
+	$(RM) -r $(SCHEMATRON_ORIG_DIR)
+	$(MKDIR_P) $(SCHEMATRON_ORIG_DIR)
+	$(unzip) -d $(SCHEMATRON_ORIG_DIR) $<
+	$(MKDIR_P) -p $(dir $@)
+	$(call touch,$@)
+
+patch: $(TOKEN_PATCHED_SCHEMATRON)
+
+$(TOKEN_PATCHED_SCHEMATRON): $(SCHEMATRON_PATCH_FILE) $(TOKEN_EXTRACTED_SCHEMATRON)
+	$(RM) $@
+	$(RM) -r $(SCHEMATRON_PATCHED_DIR)
+	$(MKDIR_P) $(SCHEMATRON_PATCHED_DIR)
+	(cd $(SCHEMATRON_ORIG_DIR) && tar cf - .) | (cd $(SCHEMATRON_PATCHED_DIR) && tar xf -)
+	patch -p0 --input=$<
+	$(MKDIR_P) -p $(dir $@)
+	$(call touch,$@)
+
+reset-patch: $(TOKEN_EXTRACTED_SCHEMATRON)
+	$(RM) -r tmp/schematron-patched
+	mv $(SCHEMATRON_PATCHED_DIR) tmp/schematron-patched
+	$(MKDIR_P) $(SCHEMATRON_PATCHED_DIR)
+	(cd $(SCHEMATRON_ORIG_DIR) && tar cf - .) | (cd $(SCHEMATRON_PATCHED_DIR) && tar xf -)
+	- diff -Naur -x '*~' $(SCHEMATRON_PATCHED_DIR) tmp/schematron-patched > $(SCHEMATRON_PATCH_FILE)
+	$(RM) -r $(SCHEMATRON_PATCHED_DIR)
+	mv tmp/schematron-patched $(SCHEMATRON_PATCHED_DIR)
+
+.PHONY: stage-patch
+stage-patch: $(TOKEN_EXTRACTED_SCHEMATRON)
+	$(RM) -r $(SCHEMATRON_PATCHED_DIR)
+	$(MKDIR_P) $(SCHEMATRON_PATCHED_DIR)
+	(cd $(SCHEMATRON_ORIG_DIR) && tar cf - .) | (cd $(SCHEMATRON_PATCHED_DIR) && tar xf -)
+
+# end Schematron XSLT pile
+#############################################################################
+# checksums
+
+$(TOKEN_CHECKSUMS_OK): $(CHECKSUM_FILE)
+	shasum -c $(CHECKSUM_FILE)
+	mkdir -p $(dir $@)
+	$(call touch,$@)
+
+reset-shasums: $(SCHEMATRON_ZIP)
+	$(shasum) -a 1 -b $^ > $(CHECKSUM_FILE)
+
+# end checksums
+#############################################################################
+
+tmp/all/%: src/% m4-header.m4
+	$(MKDIR_P) $(dir $@)
+	$(m4) -P \
+		-DMACRO_PACKAGE_NAME=$(PACKAGE_NAME) \
+		-DMACRO_WRTOOLS_CORE_PACKAGE_NAME=$(wrtools_core_package_name) \
+		m4-header.m4 $< > $@
+	if [[ -x $< ]]; then chmod uog+x $@; fi
+
+install: $(INSTALL_FILES)
+
+uninstall:
+	$(RM) $(INSTALL_FILES)
+
+clean:
+	$(RM) -r out tmp/all
+
+distclean: clean
+	$(RM) -r autom4te.cache .gradle tmp
+	$(RM) Makefile config.log config.status stow.mk
+
+#############################################################################
+# zip
+
+.PHONY: zip
+zip: tmp/$(dist_name).zip
+
+tmp/$(dist_name).zip: all
+	$(MAKE) -f prerequisites.mk
+	$(RM) -r tmp/$(dist_name)
+	$(MKDIR_P) tmp/$(dist_name)
+	(cd tmp/all && $(tar) cf - .) | (cd tmp/$(dist_name) && $(tar) xf -)
+	(cd tmp/prerequisites && $(tar) cf - .) | (cd tmp/$(dist_name) && $(tar) xf -)
+	cd tmp && $(zip) -9 -r $(dist_name).zip $(dist_name)

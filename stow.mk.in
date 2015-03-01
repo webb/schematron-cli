@@ -1,0 +1,25 @@
+
+SHELL = @bash@
+
+PACKAGE_NAME = @PACKAGE_NAME@
+prefix = @prefix@
+
+stow = @stow@
+
+.PHONY: all unstow uninstall install stow rm
+all: rm install stow
+
+rm: unstow uninstall
+
+unstow:
+	- $(stow) -d $(prefix)/stow -t $(prefix) --delete --verbose --no-folding $(PACKAGE_NAME)
+
+uninstall:
+	$(RM) -r $(prefix)/stow/$(PACKAGE_NAME)
+
+install:
+	$(MAKE) install prefix=$(prefix)/stow/$(PACKAGE_NAME)
+
+stow:
+	$(stow) -d $(prefix)/stow -t $(prefix) --stow --verbose --no-folding $(PACKAGE_NAME)
+
