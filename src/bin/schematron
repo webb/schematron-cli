@@ -5,6 +5,7 @@
 #HELP:Options:
 #HELP:  --help | -h: print this help
 #HELP:  --verbose | -v: print debugging and status output
+#HELP:  --keep-temps | -k: Don't delete temporary files
 
 set -o nounset -o errexit
 
@@ -24,6 +25,20 @@ opt_schema () {
     SCHEMA=$1
 }
 
+#HELP:  --format=$format: Generate output in indicated format
+#HELP:      The default format is "svrl"
+#HELP:      Formats available:
+#HELP:        svrl: Schematron Validation Report Langugage
+#HELP:        text: grep-like text output
+format=svrl
+opt_format () {
+    (( $# == 1 )) || fail "$FUNCNAME must have 1 argument, an output format"
+    case $1 in
+        svrl | text ) format=$1;;
+        * ) fail "Option --format got unexpected format \"$1\"";;
+    esac
+}
+
 #HELP:  --force-rebuild | -f: Always rebuild XSLTs from Schematrons, even if they have not changed.
 FORCE_REBUILD=false
 opt_force_rebuild () {
@@ -39,24 +54,27 @@ opt_param () {
 }
 
 OPTIND=1
-while getopts :fhvs:-: OPTION
+while getopts :fhkvs:-: OPTION
 do
     case "$OPTION" in
         f ) opt_force_rebuild;;
         h ) opt_help;;
+        k ) opt_keep_temps;;
         v ) opt_verbose;;
         s ) opt_schema "$OPTARG";;
         - )
             case "$OPTARG" in
                 force-rebuild ) opt_force_rebuild;;
                 help ) opt_help;;
+                keep-temps ) opt_keep_temps;;
                 verbose ) opt_verbose;;
-                force-rebuild=* | help=* | verbose=* ) 
+                force-rebuild=* | help=* | keep-temps=* | verbose=* ) 
                     fail "No argument expected for long option \"${OPTARG%%=*}\"";;
 
+                format=* ) opt_format "${OPTARG#*=}";;
                 param=* ) opt_param "${OPTARG#*=}";;
                 schema=* ) opt_schema "${OPTARG#*=}";;
-                param | schema )
+                format | param | schema )
                     fail "Missing required argument for long option \"$OPTARG\"";;
                 
                 * ) fail "Unexpected long option \"$OPTARG\"";;
@@ -116,6 +134,27 @@ COMMAND=(saxon \
 if (( ${#PARAMS[@]} > 0 ))
 then COMMAND+=("${PARAMS[@]}")
 fi
-vrun "${COMMAND[@]}"
+
+exec 3>&1
+if [[ $format = text ]]
+then temp_make_file plain_svrl annotated_svrl
+     exec 3>"$plain_svrl"
+fi
+
+vrun "${COMMAND[@]}" >&3
+
+if [[ $format = text ]]
+then vrun xalan \
+          --in="$plain_svrl" \
+          --xsl="$root_dir"/share/'MACRO_PACKAGE_NAME'/annotate-svrl.xsl \
+          --out="$annotated_svrl" \
+          -- -L
+     vrun xalan \
+          --in="$annotated_svrl" \
+          --xsl="$root_dir"/share/'MACRO_PACKAGE_NAME'/annotated-svrl-to-text.xsl \
+          --param=filename="$1"
+fi
+     
+
 
 
