@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([schematron-cli], [0.1], [wr@gatech.edu])
+AC_INIT([schematron-cli], [0], [wr@gatech.edu])
 AC_COPYRIGHT
 AC_CONFIG_SRCDIR
 
@@ -17,7 +17,7 @@ AC_DEFUN([WR_check_prog],[AC_PATH_PROG($1,$1)
 
 dnl WR_check_prog_options( $command-short-name, $command-name-options ... )
 dnl   e.g., WR_check_prog_options(cat, gcat cat) will set @cat@
-AC_DEFUN([WR_check_prog_options],[AC_PATH_PROG($1,$2)
+AC_DEFUN([WR_check_prog_options],[AC_PATH_PROGS($1,$2)
   test "x$[]$1" = "x" && AC_MSG_ERROR([$1 not found])])dnl
 
 WR_check_prog(bash)
