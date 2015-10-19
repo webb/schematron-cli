@@ -2,13 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([schematron-cli], [0], [wr@gatech.edu])
+AC_INIT([schematron-cli], [0.1], [wr@gatech.edu])
 AC_COPYRIGHT
 AC_CONFIG_SRCDIR
 
 # Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
+AC_PROG_SED
 
 dnl WR_check_prog( $command-name )
 dnl   e.g., WR_check_prog(bash) will set @bash@
