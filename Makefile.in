@@ -62,7 +62,7 @@ SCHEMATRON_ORIG_DIR = tmp/iso-schematron-orig
 SCHEMATRON_PATCHED_DIR = tmp/iso-schematron-patched
 SCHEMATRON_PATCH_FILE = iso-schematron-xslt2.patch
 
-installed_schematron_dir = ${prefix}/${share_dir_rel}/iso_schematron_xslt2
+installed_schematron_dir = ${prefix}/${share_dir_rel}/iso-schematron-xslt2
 installed_schematron_turd = ${installed_schematron_dir}/.turd_installed_schematron
 
 CHECKSUM_FILE=shasums.txt

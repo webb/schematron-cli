@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([schematron-cli], [0.1], [wr@gatech.edu])
+AC_INIT([schematron-cli], [0.2], [wr@gatech.edu])
 AC_COPYRIGHT
 AC_CONFIG_SRCDIR
 
