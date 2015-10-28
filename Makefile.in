@@ -73,6 +73,8 @@ touch = mkdir -p $(dir $(1)) && touch $(1)
 .PHONY: default
 default: all
 
+.SECONDARY:
+
 #############################################################################
 # all
 
@@ -118,10 +120,10 @@ ${build_dir}/%: src/%
 ${build_dir}/%: ${build_dir}/%.m4 m4-header.m4
 	$(MKDIR_P) $(dir $@)
 	$(m4) -P \
-		-DMACRO_PACKAGE_NAME=$(PACKAGE_NAME) \
-		-DMACRO_WRTOOLS_CORE_PACKAGE_NAME=$(wrtools_core_package_name) \
+		-DMACRO_PACKAGE_NAME="$(PACKAGE_NAME)" \
+		-DMACRO_WRTOOLS_CORE_PACKAGE_NAME="$(wrtools_core_package_name)" \
+		-DM_SHARE_DIR_REL="${share_dir_rel}" \
 		m4-header.m4 $< > $@
-
 
 #############################################################################
 # schematron XSLT pile

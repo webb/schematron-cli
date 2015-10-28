@@ -7,7 +7,7 @@
 #HELP:  --verbose | -v: print debugging and status output
 #HELP:  --keep-temps | -k: Don't delete temporary files
 
-set -o nounset -o errexit
+set -o nounset -o errexit -o pipefail
 
 root_dir=$(dirname "$0")/..
 . "$root_dir"/share/'MACRO_WRTOOLS_CORE_PACKAGE_NAME'/opt_help.bash
