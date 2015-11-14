@@ -174,7 +174,7 @@ stage-patch: $(TOKEN_EXTRACTED_SCHEMATRON)
 #############################################################################
 # checksums
 
-$(TOKEN_CHECKSUMS_OK): $(CHECKSUM_FILE)
+$(TOKEN_CHECKSUMS_OK): $(CHECKSUM_FILE) $(SCHEMATRON_ZIP)
 	shasum -c $(CHECKSUM_FILE)
 	mkdir -p $(dir $@)
 	$(call touch,$@)
