@@ -60,6 +60,7 @@ do
     case "$OPTION" in
         h ) opt_help;;
         k ) opt_keep_temps;;
+        o ) opt_output_file "$OPTARG";;
         v ) opt_verbose;;
         s ) opt_xslt_file "$OPTARG";;
         - )
@@ -70,6 +71,7 @@ do
                 not-paranoid ) opt_not_paranoid;;
                 help=* | keep-temps=* | verbose=* | not-paranoid=* ) 
                     fail "No argument expected for long option \"${OPTARG%%=*}\"";;
+                output-file=* ) opt_output_file "${OPTARG#*=}";;
                 param=* ) opt_param "${OPTARG#*=}";;
                 format=* ) opt_format "${OPTARG#*=}";;
                 xslt-file=* ) opt_xslt_file "${OPTARG#*=}";;
