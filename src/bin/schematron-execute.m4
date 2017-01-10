@@ -12,7 +12,7 @@ root_dir=$(dirname "$0")/..
 share_dir="$root_dir"/'M_SHARE_DIR_REL'
 
 #HELP:COMMAND_NAME: Run a pre-compiled Schematron XSLT against a subject file
-#HELP:Usage: COMMAND_NAME --xslt=$schema.sch.xsl $subject.xml
+#HELP:Usage: COMMAND_NAME --xslt-file=$schema.sch.xsl $subject.xml
 #HELP:Options:
 #HELP:  --help | -h: print this help
 #HELP:  --verbose | -v: print debugging and status output
