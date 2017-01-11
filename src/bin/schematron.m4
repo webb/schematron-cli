@@ -10,10 +10,10 @@
 set -o nounset -o errexit -o pipefail
 
 root_dir=$(dirname "$0")/..
-. "$root_dir"/share/'MACRO_WRTOOLS_CORE_PACKAGE_NAME'/opt_help.bash
-. "$root_dir"/share/'MACRO_WRTOOLS_CORE_PACKAGE_NAME'/opt_verbose.bash
-. "$root_dir"/share/'MACRO_WRTOOLS_CORE_PACKAGE_NAME'/fail.bash
-. "$root_dir"/share/'MACRO_WRTOOLS_CORE_PACKAGE_NAME'/temp.bash
+. "$root_dir"/share/wrtools-core/opt_help.bash
+. "$root_dir"/share/wrtools-core/opt_verbose.bash
+. "$root_dir"/share/wrtools-core/fail.bash
+. "$root_dir"/share/wrtools-core/temp.bash
 
 #HELP:  --schema=$schema | -s $schema: validate against Schematron schema
 unset SCHEMA
