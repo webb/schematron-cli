@@ -1,4 +1,4 @@
 [submodule "schematron-impl"]
-	path = schematron-impl
+	path = share/schematron-impl
 	url = https://github.com/webb/schematron-impl.git
 	branch = schematron-xslt-only
