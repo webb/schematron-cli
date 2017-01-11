@@ -9,7 +9,6 @@ root_dir=$(dirname "$0")/..
 . "$root_dir"/share/wrtools-core/temp.bash
 . "$root_dir"/share/wrtools-core/paranoia.bash
 
-share_dir="$root_dir"/share/schematron-cli
 impl_share_dir="$root_dir"/share/schematron-impl
 
 #HELP:COMMAND_NAME: Compile a Schematron document into an XSLT document
@@ -74,16 +73,16 @@ temp_make_file stage_1_includes stage_2_abstracts_expanded
 vrun saxon \
      --in="$input_file" \
      --out="$stage_1_includes" \
-     --xsl="$share_dir"/iso-schematron-xslt2/iso_dsdl_include.xsl
+     --xsl="$impl_share_dir"/iso_dsdl_include.xsl
 
 vrun saxon \
      --in="$stage_1_includes" \
      --out="$stage_2_abstracts_expanded" \
-     --xsl="$share_dir"/iso-schematron-xslt2/iso_abstract_expand.xsl
+     --xsl="$impl_share_dir"/iso_abstract_expand.xsl
 
 vrun saxon \
      --in="$stage_2_abstracts_expanded" \
      --out="$output_file" \
-     --xsl="$share_dir"/iso-schematron-xslt2/iso_svrl_for_xslt2.xsl \
+     --xsl="$impl_share_dir"/iso_svrl_for_xslt2.xsl \
      -- allow-foreign=true full-path-notation=4
 
