@@ -70,19 +70,18 @@ vecho "output file is $output_file"
 
 temp_make_file stage_1_includes stage_2_abstracts_expanded
 
-vrun saxon \
+vrun xalan \
      --in="$input_file" \
      --out="$stage_1_includes" \
      --xsl="$impl_share_dir"/iso_dsdl_include.xsl
 
-vrun saxon \
+vrun xalan \
      --in="$stage_1_includes" \
      --out="$stage_2_abstracts_expanded" \
      --xsl="$impl_share_dir"/iso_abstract_expand.xsl
 
-vrun saxon \
+vrun xalan \
      --in="$stage_2_abstracts_expanded" \
      --out="$output_file" \
      --xsl="$impl_share_dir"/iso_svrl_for_xslt2.xsl \
-     -- allow-foreign=true full-path-notation=4
-
+     --param=allow-foreign=true
