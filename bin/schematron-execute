@@ -9,7 +9,7 @@ root_dir=$(dirname "$0")/..
 . "$root_dir"/share/wrtools-core/temp.bash
 . "$root_dir"/share/wrtools-core/paranoia.bash
 
-share_dir="$root_dir"/schematron-cli
+share_dir="$root_dir"/share/schematron-cli
 
 #HELP:COMMAND_NAME: Run a pre-compiled Schematron XSLT against a subject file
 #HELP:Usage: COMMAND_NAME --xslt-file=$schema.sch.xsl $subject.xml
