@@ -85,9 +85,9 @@ shift $((OPTIND-1))
 
 xslt_file="$SCHEMA.xsl"
 
-vrun "$root_dir"/bin/schematron-compile --output-file="$xslt_file" "$SCHEMA"
+vrun schematron-compile --output-file="$xslt_file" "$SCHEMA"
 
-command=("$root_dir"/bin/schematron-execute --xslt-file="$xslt_file" --format="$format")
+command=(schematron-execute --xslt-file="$xslt_file" --format="$format")
 for key in "${!PARAMS[@]}"
 do command+=(--param="${PARAMS[key]}")
 done
