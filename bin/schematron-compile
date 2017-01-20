@@ -70,7 +70,7 @@ vecho "output file is $output_file"
 
 temp_make_file stage_1_includes stage_2_abstracts_expanded
 
-vrun xalan \
+vrun xalan --java-arg=-Xss2048k \
      --in="$input_file" \
      --out="$stage_1_includes" \
      --xsl="$impl_share_dir"/iso_dsdl_include.xsl
