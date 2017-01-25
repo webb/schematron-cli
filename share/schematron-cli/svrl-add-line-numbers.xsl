@@ -3,7 +3,7 @@
    version="1.0"
    xmlns:exslt-dyn="http://exslt.org/dynamic"
    xmlns:map="http://example.org/ns/map"
-   xmlns:results="http://example.org/ns/results"
+   xmlns:ann="https://github.com/webb/schematron-cli/ns/svrl-annotation"
    xmlns:svrl="http://purl.oclc.org/dsdl/svrl"
    xmlns:xalan-nodeinfo="org.apache.xalan.lib.NodeInfo"
    xmlns="http://www.w3.org/1999/XSL/Transform">
@@ -29,7 +29,7 @@
     <variable name="location-string" select="@location"/>
     <variable name="active-pattern" select="preceding-sibling::svrl:active-pattern[1]"/>
     <variable name="document-file-name" select="$active-pattern/@document"/>
-    <attribute name="lineNumber">
+    <attribute name="ann:line-number">
       <for-each select="document($document-file-name)">
         <value-of select="xalan-nodeinfo:lineNumber( exslt-dyn:evaluate( $location-string ) )"/>
       </for-each>
