@@ -80,8 +80,8 @@ vrun xalan \
      --out="$stage_2_abstracts_expanded" \
      --xsl="$impl_share_dir"/iso_abstract_expand.xsl
 
-vrun xalan \
+vrun saxon \
      --in="$stage_2_abstracts_expanded" \
      --out="$output_file" \
      --xsl="$impl_share_dir"/iso_svrl_for_xslt2.xsl \
-     --param=allow-foreign=true
+     -- allow-foreign=true

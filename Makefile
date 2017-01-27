@@ -22,6 +22,11 @@ clean:
 .PHONY: xsl #        Compile Schematron files into XSLTs
 xsl: ${compiled_sch_as_xsl}
 
+.PHONY: test #  Test Schematron docs against schemas for Schematron
+test:
+	schematron-execute --xslt-file=share/schematron-schema/schematron.sch.xsl \
+	  share/schematron-schema/schematron.sch
+
 .PHONY: help #  Print this help
 help:
 	@ sed -e '/^\.PHONY:/s/^\.PHONY: *\([^ #]*\) *\#\( *\)\([^ ].*\)/\2\1: \3/p;/^[^#]*#HELP:/s/[^#]*#HELP:\(.*\)/\1/p;d' ${this_makefile}

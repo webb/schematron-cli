@@ -102,39 +102,56 @@ vecho "Subject file is $subject_file"
 vecho "Validating file \"$subject_file\" against Schematron XSLT \"$xslt_file\""
 vecho "Format is $format"
 
-command=( saxon --in="$subject_file" --xsl="$xslt_file" )
+# stage 1: run XSLT on subject; generate plain SVRL 
 
-case $format in
-    svrl )
-        if [[ -n ${output_file+is-set} ]]
-        then command+=( --out="$output_file" )
-        fi;;
-    text )
-        temp_make_file stage_1_plain_svrl stage_2_annotated_svrl
-        command+=( --out=$stage_1_plain_svrl )
+temp_make_file plain_svrl
+
+xsl_version=$(xsltproc "$share_dir"/get-xsl-stylesheet-version.xsl "$xslt_file")
+case $xsl_version in
+    1.0 )
+        command=(xsltproc --output "$plain_svrl" --param document-uri "'frodo'")
+        for key in "${!params[@]}"
+        do command+=(--param "${params[key]%%=*}" "${params[key]#*=}")
+        done
+        command+=("$xslt_file" "$subject_file")
+        ;;
+    2.0)
+        command=( saxon --in="$subject_file" --xsl="$xslt_file" --out="$plain_svrl" -- -l:on)
+        for key in "${!params[@]}"
+        do command+=("${params[key]}")
+        done
+        ;;
+    * )
+        fail "Unknown XSL version in stylesheet file ($xslt_file)"
         ;;
 esac
 
-command+=( -- -l:on )
-
-if (( ${#params[@]} > 0 ))
-then command+=( "${params[@]}" )
-fi
-
 vrun "${command[@]}"
 
+# stage 2: add line numbers to SVRL
+
+unset svrl_with_line_numbers
+command=(xalan --in="$plain_svrl" --xsl="$share_dir"/svrl-add-line-numbers.xsl)
+case $format in
+    svrl ) if [[ -n ${output_file+is-set} ]]
+           then svrl_with_line_numbers=$output_file
+                command+=(--out="$svrl_with_line_numbers")
+           fi;;
+    text ) temp_make_file svrl_with_line_numbers
+           command+=(--out="$svrl_with_line_numbers")        
+           ;;
+esac
+command+=(-- -L)
+vrun "${command[@]}"
+
+# stage 3: output text
+
 if [[ $format = text ]]
-then vrun xalan \
-          --in="$stage_1_plain_svrl" \
-          --xsl="$share_dir"/annotate-svrl.xsl \
-          --out="$stage_2_annotated_svrl" \
-          -- -L
-     command=(xalan \
-                --in="$stage_2_annotated_svrl" \
-                --xsl="$share_dir"/annotated-svrl-to-text.xsl \
-                --param=filename="$subject_file")
+then command=(xalan --in="$svrl_with_line_numbers" \
+                    --xsl="$share_dir"/annotated-svrl-to-text.xsl \
+                    --param=filename="$subject_file")
      if [[ -n ${output_file+is-set} ]]
-     then command+=( --out="$output_file" )
+     then command+=(--out="$output_file")
      fi
      vrun "${command[@]}"
 fi

@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+#HELP:COMMAND_NAME: Verify a file as a Schematron document
+#HELP:Usage: COMMAND_NAME $file-to-test
+#HELP:Options:
+#HELP:  --help | -h: print this help
+#HELP:  --verbose | -v: print debugging and status output
+#HELP:  --keep-temps | -k: Don't delete temporary files
+
+set -o nounset -o errexit -o pipefail
+
+root_dir=$(dirname "$0")/..
+. "$root_dir"/share/wrtools-core/opt_help.bash
+. "$root_dir"/share/wrtools-core/opt_verbose.bash
+. "$root_dir"/share/wrtools-core/fail.bash
+. "$root_dir"/share/wrtools-core/temp.bash
+
+OPTIND=1
+while getopts :fhkvs:-: OPTION
+do
+    case "$OPTION" in
+        h ) opt_help;;
+        k ) opt_keep_temps;;
+        v ) opt_verbose;;
+        - )
+            case "$OPTARG" in
+                help ) opt_help;;
+                keep-temps ) opt_keep_temps;;
+                verbose ) opt_verbose;;
+                help=* | keep-temps=* | verbose=* ) 
+                    fail "No argument expected for long option \"${OPTARG%%=*}\"";;
+                *=* ) fail "Unexpected long option (with argument) \"${OPTARG%%=*}\"";;
+                * ) fail "Unexpected long option \"$OPTARG\"";;
+            esac;;
+        '?' ) fail "Unknown short option \"$OPTARG\"";;
+        : ) fail "Short option \"$OPTARG\" missing argument";;
+        * ) fail "bad state OPTARG=\"$OPTARG\"";;
+    esac
+done
+shift $((OPTIND-1))
+
+(( $# == 1 )) || fail "expected only one argument (got $#)"
+
+jing -- -c "$root_dir"/share/schematron-schema/schematron.rnc "$1"
+
+schematron-execute --format=text --xslt-file="$root_dir"/share/schematron-schema/schematron.sch.xsl "$1"
+
