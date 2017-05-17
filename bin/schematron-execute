@@ -155,3 +155,15 @@ then command=(xalan --in="$svrl_with_line_numbers" \
      fi
      vrun "${command[@]}"
 fi
+
+if has_failed_assert=$(xalan --in="$plain_svrl" --xsl="$share_dir"/svrl-get-failed-assert-indicator.xsl)
+then case $has_failed_assert in
+         true ) exit 1;;
+         false ) exit 0;;
+         * ) fail_assert "get-failed-assert-indicator got unexpected value \"$has_failed_assert\"";;
+     esac
+else fail_assert "get-failed-assert-indicator failed"
+fi
+
+          
+  
