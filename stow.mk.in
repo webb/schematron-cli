@@ -1,0 +1,37 @@
+this_makefile := ${lastword ${MAKEFILE_LIST}}
+SHELL = @bash@ -o pipefail -o errexit -o nounset
+.SECONDARY:
+.DEFAULT_GOAL = help
+
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+prefix = @prefix@
+SED = @SED@
+stow = @stow@
+
+#HELP:Install this package using GNU stow.
+#HELP:Package installed to "@prefix@/stow/@PACKAGE_TARNAME@"
+#HELP:Package linked into "@prefix@"
+#HELP:Usage:
+#HELP:    $ make
+#HELP:    $ make -f stow.mk install
+#HELP:targets:
+
+.PHONY: install #   Install using GNU Stow
+install:
+	${MAKE} install prefix=${prefix}/stow/${PACKAGE_TARNAME}
+	${stow} -d ${prefix}/stow -t ${prefix} --stow --verbose --no-folding ${PACKAGE_TARNAME}
+
+.PHONY: uninstall #   Uninstall using GNU Stow
+uninstall:
+	- ${stow} -d ${prefix}/stow -t ${prefix} --delete --verbose --no-folding ${PACKAGE_TARNAME}
+	${MAKE} uninstall prefix=${prefix}/stow/${PACKAGE_TARNAME}
+	${RM} -r ${prefix}/stow/${PACKAGE_TARNAME}
+
+#############################################################################
+# make help: this must be the last target
+
+.PHONY: help #   Print this help
+help:
+	@ ${SED} -e '/^\.PHONY:/s/^\.PHONY: *\([^ #]*\) *\#\( *\)\([^ ].*\)/\2\1: \3/p;/^[^#]*#HELP:/s/[^#]*#HELP:\(.*\)/\1/p;d' ${this_makefile}
+
+# don't put anything after this
