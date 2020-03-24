@@ -1,8 +1,8 @@
 [submodule "schematron-impl"]
-	path = share/schematron-impl
+	path = schematron-impl
 	url = https://github.com/webb/schematron-impl.git
 	branch = schematron-xslt-only
 [submodule "share/schematron-schema"]
-	path = share/schematron-schema
+	path = schematron-schema
 	url = https://github.com/webb/schematron-schema.git
 	branch = 2016
