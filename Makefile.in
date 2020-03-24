@@ -17,6 +17,9 @@ builddir = @builddir@
 prefix = @prefix@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 
+tokens_dir = ${builddir}/build/tokens
+out_dir = ${builddir}/build/out
+
 # PROGRAMS
 # autoconf names
 MKDIR_P = @MKDIR_P@
@@ -33,9 +36,19 @@ find = @find@
 
 config_files = @config_files@
 
-src_files_default := ${shell ${find} ${srcdir}/src -type f ! -name '*~' ! -name '\#*\#' ! -name '\.\#*'}
-src_files = ${src_files_default}
-all_files = ${src_files:${srcdir}/src/%=${builddir}/build/%}
+# generate list with:
+# $ find src -type f | cut -c 5- | egrep -v -e '.~' | sed -e 's/^\(.*\)$/  \1 \\/'
+all_files_rel = \
+  bin/schematron \
+  bin/schematron-execute \
+  bin/schematron-compile \
+  bin/check-schematron \
+  share/schematron-cli/get-xsl-stylesheet-version.xsl \
+  share/schematron-cli/svrl-get-failed-assert-indicator.xsl \
+  share/schematron-cli/annotated-svrl-to-text.xsl \
+  share/schematron-cli/svrl-add-line-numbers.xsl
+all_files = ${all_files_rel:%=${out_dir}/%}
+
 install_files = ${src_files:${srcdir}/src/%=${prefix}/%}
 
 #############################################################################
@@ -43,7 +56,9 @@ install_files = ${src_files:${srcdir}/src/%=${prefix}/%}
 .DEFAULT_GOAL = all
 
 .PHONY: all #   Build everything
-all: ${all_files}
+all: ${tokens_dir}/build-schematron-impl \
+  ${tokens_dir}/build-schematron-schema \
+  ${all_files}
 
 .PHONY: install #   Install to $prefix (default "@prefix@")
 install: ${install_files}
@@ -54,7 +69,6 @@ uninstall:
 
 .PHONY: clean #   Clean build products
 clean:
-	${RM} ${all_files}
 	${RM} -r ${builddir}/build
 
 .PHONY: distclean #   Clean build & configure products
@@ -64,7 +78,23 @@ distclean: clean
 #############################################################################
 # all
 
-${builddir}/build/%: ${srcdir}/src/%
+${tokens_dir}/build-schematron-impl: $(shell find $(srcdir)/schematron-impl -type f ! -name '.git' -print0 | xargs -0 ${srcdir}/bin/get-newest)
+	echo '#' build $@ from $< because $^
+	${RM} -r ${out_dir}/share/schematron-impl
+	${MKDIR_P} ${out_dir}/share/schematron-impl
+	git -C ${srcdir}/schematron-impl archive HEAD | tar -C ${out_dir}/share/schematron-impl -xv
+	${MKDIR_P} ${dir $@}
+	touch $@
+
+${tokens_dir}/build-schematron-schema: $(shell find $(srcdir)/schematron-schema -type f ! -name '.git' -print0 | xargs -0 ${srcdir}/bin/get-newest)
+	echo '#' build $@ from $< because $^
+	${RM} -r ${out_dir}/share/schematron-schema
+	${MKDIR_P} ${out_dir}/share/schematron-schema
+	git -C ${srcdir}/schematron-schema archive HEAD | tar -C ${out_dir}/share/schematron-schema -xv
+	${MKDIR_P} ${dir $@}
+	touch $@
+
+${out_dir}/%: ${srcdir}/src/%
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} -- $< $@
 
