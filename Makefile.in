@@ -49,7 +49,8 @@ all_files_rel = \
   share/schematron-cli/svrl-add-line-numbers.xsl
 all_files = ${all_files_rel:%=${out_dir}/%}
 
-install_files = ${src_files:${srcdir}/src/%=${prefix}/%}
+out_files = ${shell [[ -d ${out_dir} ]] && ${find} ${out_dir} -type f -print}
+install_files = ${out_files:${out_dir}/%=${prefix}/%}
 
 #############################################################################
 #HELP:Default target is "all". Targets include:
@@ -65,7 +66,9 @@ install: ${install_files}
 
 .PHONY: uninstall #   Remove installed files
 uninstall:
-	${RM} ${install_files}
+	while read -rd '' file; \
+	do ${RM} --dir "${prefix}$${file#${out_dir}}" || true; \
+	done < <( ${find} ${out_dir} -depth -print0)
 
 .PHONY: clean #   Clean build products
 clean:
@@ -78,16 +81,14 @@ distclean: clean
 #############################################################################
 # all
 
-${tokens_dir}/build-schematron-impl: $(shell find $(srcdir)/schematron-impl -type f ! -name '.git' -print0 | xargs -0 ${srcdir}/bin/get-newest)
-	echo '#' build $@ from $< because $^
+${tokens_dir}/build-schematron-impl:
 	${RM} -r ${out_dir}/share/schematron-impl
 	${MKDIR_P} ${out_dir}/share/schematron-impl
-	git -C ${srcdir}/schematron-impl archive HEAD | tar -C ${out_dir}/share/schematron-impl -xv
+	git -C ${srcdir}/schematron-impl archive HEAD:trunk/schematron/code | tar -C ${out_dir}/share/schematron-impl -xv
 	${MKDIR_P} ${dir $@}
 	touch $@
 
-${tokens_dir}/build-schematron-schema: $(shell find $(srcdir)/schematron-schema -type f ! -name '.git' -print0 | xargs -0 ${srcdir}/bin/get-newest)
-	echo '#' build $@ from $< because $^
+${tokens_dir}/build-schematron-schema:
 	${RM} -r ${out_dir}/share/schematron-schema
 	${MKDIR_P} ${out_dir}/share/schematron-schema
 	git -C ${srcdir}/schematron-schema archive HEAD | tar -C ${out_dir}/share/schematron-schema -xv
@@ -101,11 +102,11 @@ ${out_dir}/%: ${srcdir}/src/%
 #############################################################################
 # install
 
-${prefix}/bin/%: ${builddir}/build/bin/%
+${prefix}/bin/%: ${out_dir}/bin/%
 	@ ${MKDIR_P} -- ${dir $@}
 	${INSTALL_PROGRAM_READONLY} -- $< $@
 
-${prefix}/%: ${builddir}/build/%
+${prefix}/%: ${out_dir}/%
 	@ ${MKDIR_P} -- ${dir $@}
 	${INSTALL_DATA_READONLY} -- $< $@
 
